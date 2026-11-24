@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Roblox 2021 // Ragdoll & Studio Engine</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #f2f4f5;
+            color: #191b1d;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .rblx-topbar {
+            height: 44px;
+            background: #ffffff;
+            border-bottom: 1px solid #d9dadb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            gap: 10px;
+            position: relative;
+            z-index: 40;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .rblx-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow-x: auto;
+        }
+
+        .rblx-logo {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            color: #111214;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .rblx-logo-mark {
+            width: 18px;
+            height: 18px;
+            border: 3.5px solid #111214;
+            border-radius: 3px;
+            transform: rotate(-12deg);
+            display: inline-block;
+        }
+
+        .nav-tab {
+            background: none;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #393b3d;
+            padding: 6px 9px;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background: #eef1f4;
+            color: #000;
+        }
+
+        .nav-tab.active {
+            color: #0066cc;
+            background: #e6f0fa;
+        }
+
+        .rblx-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .user-chip, .robux-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f2f4f5;
+            border: 1px solid #d0d5dd;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #111214;
+            cursor: pointer;
+        }
+
+        .robux-coin {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 2px solid #111214;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: 900;
+        }
+
+        .page-view {
+            display: none;
+            height: calc(100vh - 44px);
+            overflow-y: auto;
+            padding: 20px;
+            background: #f2f4f5;
+        }
+
+        .page-view.active {
+            display: block;
+        }
+
+        .page-container {
+            max-width: 1120px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #191b1d;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .game-tile {
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            transition: transform 0.16s, box-shadow 0.16s;
+            cursor: pointer;
+            border: 1px solid #e4e7ec;
+        }
+
+        .game-tile:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .game-thumb {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .thumb-sky {
+            background: linear-gradient(180deg, #56b4ff 0%, #bae0ff 70%, #3b873e 70%, #2d6f30 100%);
+        }
+
+        .thumb-parkour {
+            background: linear-gradient(135deg, #4db2ff 0%, #7be3b2 100%);
+        }
+
+        .thumb-custom {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+        }
+
+        .game-info {
+            padding: 10px 12px;
+        }
+
+        .game-name {
+            font-size: 0.94rem;
+            font-weight: 700;
+            color: #191b1d;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .game-meta {
+            font-size: 0.76rem;
+            color: #667085;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .tile-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .card-box {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 18px;
+            border: 1px solid #e4e7ec;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            margin-bottom: 18px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #344054;
+            margin-bottom: 4px;
+        }
+
+        .field input, .field select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.85rem;
+            background: #fff;
+            color: #111827;
+        }
+
+        .btn-primary {
+            background: #0084ff;
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 8px 14px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover { background: #006ce0; }
+
+        .btn-success {
+            background: #02b857;
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 8px 14px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-success:hover { background: #019646; }
+
+        .btn-secondary {
+            background: #e4e7ec;
+            color: #191b1d;
+            border: none;
+            border-radius: 7px;
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 14px;
+        }
+
+        .shop-item {
+            background: #ffffff;
+            border: 1px solid #e4e7ec;
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        #game-page {
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #canvas-3d {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #billboard-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+
+        .billboard-ui {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            background: rgba(17, 24, 39, 0.8);
+            color: #ffffff;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            white-space: nowrap;
+            backdrop-filter: blur(4px);
+        }
+
+        .billboard-ui.pad-tag {
+            background: rgba(239, 68, 68, 0.88);
+            border-color: #fecaca;
+            transform: translate(-50%, -50%);
+        }
+
+        .game-hud-top {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 15;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            flex-wrap: wrap;
+            pointer-events: none;
+        }
+
+        .hud-bar {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            background: rgba(20, 26, 36, 0.88);
+            color: #f8fafc;
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+
+        .hud-btn {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .hud-btn.active {
+            background: #0ea5e9;
+            border-color: #38bdf8;
+        }
+
+        .studio-panel {
+            position: absolute;
+            top: 56px;
+            bottom: 12px;
+            width: 220px;
+            background: rgba(22, 28, 38, 0.9);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            z-index: 16;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .studio-panel.open { display: flex; }
+        .studio-panel.left { left: 10px; }
+        .studio-panel.right { right: 10px; }
+
+        .studio-panel-hdr {
+            padding: 8px 10px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.06);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .studio-panel-body {
+            padding: 8px;
+            overflow-y: auto;
+            flex: 1;
+            font-size: 0.75rem;
+        }
+
+        .exp-item {
+            padding: 4px 6px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #cbd5e1;
+        }
+
+        .exp-item:hover { background: rgba(255, 255, 255, 0.08); }
+        .exp-item.selected { background: rgba(14, 165, 233, 0.35); color: #fff; font-weight: 700; }
+        .exp-sub { padding-left: 16px; color: #94a3b8; }
+
+        .studio-prop {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 6px;
+        }
+
+        .mobile-controls {
+            position: absolute;
+            inset: 0;
+            z-index: 14;
+            pointer-events: none;
+        }
+
+        .joystick-zone {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.36);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            pointer-events: auto;
+            touch-action: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .joystick-knob {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.88);
+            transform: translate(0px, 0px);
+            pointer-events: none;
+        }
+
+        .action-pad {
+            position: absolute;
+            bottom: 26px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .circle-btn {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            background: rgba(15, 23, 42, 0.58);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(17, 24, 39, 0.92);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <header class="rblx-topbar">
+        <div class="rblx-nav-left">
+            <div class="rblx-logo" id="logoHomeBtn">
+                <span class="rblx-logo-mark"></span>
+                <span>ROBLOX</span>
+            </div>
+            <button class="nav-tab active" data-page="home" id="navHomeBtn">Home</button>
+            <button class="nav-tab" data-page="create" id="navCreateBtn">Create</button>
+            <button class="nav-tab" data-page="shop" id="navShopBtn">Shop / Gamepasses</button>
+        </div>
+
+        <div class="rblx-nav-right">
+            <div class="user-chip" id="topUserChip">
+                <span id="topAvatarDot" style="width:12px;height:12px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>
+                <span id="topUsername">@Player_2021</span>
+            </div>
+            <div class="robux-pill" id="topRobuxPill">
+                <span class="robux-coin">R$</span>
+                <span id="topRobux">250</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="home-page" class="page-view active">
+        <div class="page-container">
+            <div class="card-box">
+                <div class="section-title">
+                    <span>👤 Create / Customize User</span>
+                    <span style="font-size:0.8rem;color:#667085;">Profil aktif</span>
+                </div>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="inputUsername">Username</label>
+                        <input id="inputUsername" type="text" maxlength="20" placeholder="Masukkan username...">
+                    </div>
+                    <div class="field">
+                        <label for="inputShirtColor">Warna Baju</label>
+                        <input id="inputShirtColor" type="color" value="#2563eb">
+                    </div>
+                    <div class="field">
+                        <label for="inputPantsColor">Warna Celana</label>
+                        <input id="inputPantsColor" type="color" value="#16a34a">
+                    </div>
+                    <div class="field">
+                        <label for="inputHeadColor">Warna Kepala/Tangan</label>
+                        <input id="inputHeadColor" type="color" value="#fbbf24">
+                    </div>
+                </div>
+                <button class="btn-primary" id="saveUserBtn">Simpan User</button>
+            </div>
+
+            <div class="section-title">
+                <span>🎮 Games</span>
+                <span style="font-size:0.8rem;color:#667085;">Klik Play atau Studio</span>
+            </div>
+            <div class="games-grid" id="gamesGrid"></div>
+        </div>
+    </main>
+
+    <main id="create-page" class="page-view">
+        <div class="page-container">
+            <div class="card-box">
+                <div class="section-title">
+                    <span>🛠️ Create New Game / Map</span>
+                </div>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="newGameTitle">Nama Game</label>
+                        <input id="newGameTitle" type="text" placeholder="Contoh: Ragdoll Arena Sky">
+                    </div>
+                    <div class="field">
+                        <label for="newGamePreset">Preset Map</label>
+                        <select id="newGamePreset">
+                            <option value="ragdoll_map">Ragdoll Engine Map (Ramp + Bumper + Tower)</option>
+                            <option value="sky_obby">Sky Blue Obby & Bounce Pads</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <button class="btn-success" id="createAndPlayBtn">Buat & Mainkan</button>
+                    <button class="btn-primary" id="createAndStudioBtn">Buat & Masuk Studio Mode</button>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>📂 Your Creations</span>
+            </div>
+            <div class="games-grid" id="myGamesGrid"></div>
+        </div>
+    </main>
+
+    <main id="shop-page" class="page-view">
+        <div class="page-container">
+            <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                <div>
+                    <div class="section-title" style="margin-bottom:4px;">💎 Robux & Gamepasses Shop</div>
+                    <div style="font-size:0.84rem;color:#667085;">Saldo saat ini: <strong id="shopRobuxLabel">250 R$</strong></div>
+                </div>
+                <button class="btn-success" id="claimRobuxBtn">+ Claim 100 R$</button>
+            </div>
+            <div class="shop-grid" id="shopGrid"></div>
+        </div>
+    </main>
+
+    <section id="game-page" class="page-view">
+        <div id="canvas-3d"></div>
+        <div id="billboard-layer"></div>
+
+        <div class="game-hud-top">
+            <div class="hud-bar">
+                <button class="hud-btn" id="backToHomeBtn">⬅ Home</button>
+                <button class="hud-btn active" id="btnPlayMode">▶ Play</button>
+                <button class="hud-btn" id="btnStudioMode">🛠 Studio</button>
+                <button class="hud-btn" id="btnRagdollToggle">🦴 Ragdoll: OFF</button>
+                <button class="hud-btn" id="btnFling">💥 Fling</button>
+                <button class="hud-btn" id="btnRespawn">🔄 Respawn</button>
+            </div>
+
+            <div class="hud-bar" id="studioToolsBar" style="display:none;">
+                <button class="hud-btn active" id="gizmoMove">✥ Move</button>
+                <button class="hud-btn" id="gizmoRot">↻ Rotate</button>
+                <button class="hud-btn" id="btnAddPart">+ Part</button>
+                <button class="hud-btn" id="btnAddDummy">+ Dummy</button>
+            </div>
+        </div>
+
+        <aside class="studio-panel left" id="studioExplorer">
+            <div class="studio-panel-hdr">Explorer (DataModel)</div>
+            <div class="studio-panel-body" id="explorerContent"></div>
+        </aside>
+
+        <aside class="studio-panel right" id="studioProps">
+            <div class="studio-panel-hdr">Properties</div>
+            <div class="studio-panel-body" id="propsContent"></div>
+        </aside>
+
+        <div class="mobile-controls" id="mobileControls">
+            <div class="joystick-zone" id="joystickZone">
+                <div class="joystick-knob" id="joystickKnob"></div>
+            </div>
+            <div class="action-pad">
+                <button class="circle-btn" id="mobileJumpBtn">JUMP</button>
+                <button class="circle-btn" id="mobileRagdollBtn">RAG</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const State = {
+            user: {
+                username: 'Player_2021',
+                shirt: '#2563eb',
+                pants: '#16a34a',
+                head: '#fbbf24'
+            },
+            robux: 250,
+            ownedPasses: [],
+            activeGame: null,
+            studioMode: false,
+            games: [
+                {
+                    id: 'ragdoll-engine-sky',
+                    title: 'Ragdoll Engine [Sky Map]',
+                    creator: 'RBLX_Labs',
+                    playing: '1.4K',
+                    preset: 'ragdoll_map',
+                    thumbClass: 'thumb-sky',
+                    icon: '🦴'
+                },
+                {
+                    id: 'sky-bounce-obby',
+                    title: 'Sky Blue Bumper & Obby',
+                    creator: 'SkyBuilder',
+                    playing: '820',
+                    preset: 'sky_obby',
+                    thumbClass: 'thumb-parkour',
+                    icon: '☁️'
+                }
+            ],
+            gamepasses: [
+                {
+                    id: 'mega-impulse',
+                    name: 'Mega Ragdoll Impulse',
+                    price: 50,
+                    icon: '💥',
+                    desc: 'Dorongan ragdoll jauh lebih kuat saat klik Fling atau menyentuh Bumper.'
+                },
+                {
+                    id: 'speed-coil',
+                    name: 'Speed Coil (WalkSpeed 20)',
+                    price: 75,
+                    icon: '⚡',
+                    desc: 'Meningkatkan WalkSpeed Humanoid dari 12 menjadi 20.'
+                },
+                {
+                    id: 'gravity-coil',
+                    name: 'Low Gravity Coil',
+                    price: 100,
+                    icon: '🌙',
+                    desc: 'Mengurangi gravitasi Workspace agar lompatan & ragdoll melayang lebih lama.'
+                }
+            ]
+        };
+
+        const toastEl = document.getElementById('toast');
+        function showToast(msg) {
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            clearTimeout(showToast._t);
+            showToast._t = setTimeout(() => toastEl.classList.remove('show'), 1800);
+        }
+
+        function syncHeaderUI() {
+            document.getElementById('topUsername').textContent = '@' + State.user.username;
+            document.getElementById('topAvatarDot').style.background = State.user.head;
+            document.getElementById('topRobux').textContent = State.robux;
+            document.getElementById('shopRobuxLabel').textContent = State.robux + ' R$';
+        }
+
+        function openPage(pageName) {
+            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.page === pageName);
+            });
+
+            if (pageName === 'home') {
+                document.getElementById('home-page').classList.add('active');
+                renderGamesGrid();
+            } else if (pageName === 'create') {
+                document.getElementById('create-page').classList.add('active');
+                renderMyGamesGrid();
+            } else if (pageName === 'shop') {
+                document.getElementById('shop-page').classList.add('active');
+                renderShopGrid();
+            } else if (pageName === 'game') {
+                document.getElementById('game-page').classList.add('active');
+                handleResize3D();
+            }
+        }
+
+        function saveUserProfile() {
+            const rawName = document.getElementById('inputUsername').value.trim();
+            if (rawName) State.user.username = rawName.replace(/\s+/g, '_');
+            State.user.shirt = document.getElementById('inputShirtColor').value;
+            State.user.pants = document.getElementById('inputPantsColor').value;
+            State.user.head = document.getElementById('inputHeadColor').value;
+
+            syncHeaderUI();
+            if (typeof playerRig !== 'undefined' && playerRig) {
+                playerRig.name = State.user.username;
+                playerRig.applyAppearance(State.user);
+            }
+            showToast(`User @${State.user.username} tersimpan!`);
+        }
+
+        function buildGameCardElement(g, isStudioPrimary = false) {
+            const card = document.createElement('div');
+            card.className = 'game-tile';
+
+            const thumb = document.createElement('div');
+            thumb.className = `game-thumb ${g.thumbClass}`;
+            thumb.textContent = g.icon;
+
+            const info = document.createElement('div');
+            info.className = 'game-info';
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'game-name';
+            titleDiv.textContent = g.title;
+
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'game-meta';
+            metaDiv.innerHTML = `<span>By @${g.creator}</span><span>🟢 ${g.playing}</span>`;
+
+            const actions = document.createElement('div');
+            actions.className = 'tile-actions';
+
+            const playBtn = document.createElement('button');
+            playBtn.className = 'btn-success';
+            playBtn.style.flex = '1';
+            playBtn.style.padding = '6px';
+            playBtn.textContent = 'Play';
+            playBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                launchWorld(g.id, false);
+            });
+
+            const studioBtn = document.createElement('button');
+            studioBtn.className = isStudioPrimary ? 'btn-primary' : 'btn-secondary';
+            studioBtn.style.padding = '6px 10px';
+            studioBtn.textContent = 'Studio';
+            studioBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                launchWorld(g.id, true);
+            });
+
+            actions.appendChild(playBtn);
+            actions.appendChild(studioBtn);
+
+            info.appendChild(titleDiv);
+            info.appendChild(metaDiv);
+            info.appendChild(actions);
+
+            card.appendChild(thumb);
+            card.appendChild(info);
+
+            card.addEventListener('click', () => launchWorld(g.id, isStudioPrimary));
+            return card;
+        }
+
+        function renderGamesGrid() {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = '';
+            State.games.forEach(g => grid.appendChild(buildGameCardElement(g, false)));
+        }
+
+        function renderMyGamesGrid() {
+            const grid = document.getElementById('myGamesGrid');
+            grid.innerHTML = '';
+            State.games.forEach(g => grid.appendChild(buildGameCardElement(g, true)));
+        }
+
+        function createNewGame(enterStudio) {
+            const titleInput = document.getElementById('newGameTitle');
+            const preset = document.getElementById('newGamePreset').value;
+            const title = titleInput.value.trim() || `Custom Place #${State.games.length + 1}`;
+            const newGame = {
+                id: 'game-' + Date.now(),
+                title,
+                creator: State.user.username,
+                playing: '1',
+                preset,
+                thumbClass: 'thumb-custom',
+                icon: '🏗️'
+            };
+            State.games.unshift(newGame);
+            titleInput.value = '';
+            renderGamesGrid();
+            renderMyGamesGrid();
+            launchWorld(newGame.id, enterStudio);
+        }
+
+        function grantFreeRobux(amount) {
+            State.robux += amount;
+            syncHeaderUI();
+            renderShopGrid();
+            showToast(`+${amount} R$ ditambahkan!`);
+        }
+
+        function buyGamepass(passId) {
+            const pass = State.gamepasses.find(p => p.id === passId);
+            if (!pass || State.ownedPasses.includes(passId)) return;
+            if (State.robux < pass.price) {
+                showToast('Robux tidak cukup! Klik + Claim 100 R$.');
+                return;
+            }
+            State.robux -= pass.price;
+            State.ownedPasses.push(passId);
+            applyGamepassEffects();
+            syncHeaderUI();
+            renderShopGrid();
+            showToast(`Gamepass "${pass.name}" dibeli!`);
+        }
+
+        function renderShopGrid() {
+            const grid = document.getElementById('shopGrid');
+            grid.innerHTML = '';
+            State.gamepasses.forEach(pass => {
+                const owned = State.ownedPasses.includes(pass.id);
+                const el = document.createElement('div');
+                el.className = 'shop-item';
+
+                const top = document.createElement('div');
+                top.innerHTML = `
+                    <div style="font-size:2.1rem;">${pass.icon}</div>
+                    <div style="font-weight:800;font-size:0.95rem;margin-top:4px;">${pass.name}</div>
+                    <div style="font-size:0.78rem;color:#667085;line-height:1.35;margin-top:4px;">${pass.desc}</div>
+                `;
+
+                const btn = document.createElement('button');
+                btn.className = owned ? 'btn-secondary' : 'btn-primary';
+                btn.disabled = owned;
+                btn.textContent = owned ? '✓ Owned' : `Buy ${pass.price} R$`;
+                btn.addEventListener('click', () => buyGamepass(pass.id));
+
+                el.appendChild(top);
+                el.appendChild(btn);
+                grid.appendChild(el);
+            });
+        }
+
+        // Bind Topbar & Page Buttons
+        document.getElementById('logoHomeBtn').addEventListener('click', () => openPage('home'));
+        document.getElementById('navHomeBtn').addEventListener('click', () => openPage('home'));
+        document.getElementById('navCreateBtn').addEventListener('click', () => openPage('create'));
+        document.getElementById('navShopBtn').addEventListener('click', () => openPage('shop'));
+        document.getElementById('topUserChip').addEventListener('click', () => openPage('home'));
+        document.getElementById('topRobuxPill').addEventListener('click', () => openPage('shop'));
+        document.getElementById('saveUserBtn').addEventListener('click', saveUserProfile);
+        document.getElementById('createAndPlayBtn').addEventListener('click', () => createNewGame(false));
+        document.getElementById('createAndStudioBtn').addEventListener('click', () => createNewGame(true));
+        document.getElementById('claimRobuxBtn').addEventListener('click', () => grantFreeRobux(100));
+
+        // =========================================================
+        // 3D SKY BLUE ENGINE (WITH SAFE CDN FALLBACK)
+        // =========================================================
+        const hasThree = typeof THREE !== 'undefined';
+        const canvas3dContainer = document.getElementById('canvas-3d');
+        const billboardLayer = document.getElementById('billboard-layer');
+
+        let scene, camera, renderer, controls, clouds = [], selectionBox;
+        let playerRig = null, dummyRig = null, selectedObj = null, gizmoMode = 'move';
+
+        const WorkspaceData = {
+            gravity: -28,
+            parts: [],
+            characters: [],
+            billboards: []
+        };
+
+        function applyGamepassEffects() {
+            if (!playerRig) return;
+            if (State.ownedPasses.includes('speed-coil')) playerRig.Humanoid.WalkSpeed = 20;
+            if (State.ownedPasses.includes('gravity-coil')) WorkspaceData.gravity = -14;
+        }
+
+        function handleResize3D() {
+            if (!hasThree || !camera || !renderer) return;
+            const page = document.getElementById('game-page');
+            const w = page.clientWidth || window.innerWidth;
+            const h = page.clientHeight || (window.innerHeight - 44);
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        }
+
+        if (hasThree) {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x56b4ff);
+            scene.fog = new THREE.FogExp2(0x9bd3ff, 0.0045);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / Math.max(1, window.innerHeight - 44), 0.1, 450);
+            camera.position.set(12, 10, 16);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, Math.max(1, window.innerHeight - 44));
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            canvas3dContainer.appendChild(renderer.domElement);
+
+            if (typeof THREE.OrbitControls === 'function') {
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.08;
+                controls.maxPolarAngle = Math.PI * 0.49;
+                controls.minDistance = 4;
+                controls.maxDistance = 85;
+            } else {
+                // Fallback camera drag if OrbitControls CDN fails
+                let draggingCam = false, prevX = 0, prevY = 0, yaw = 0.65, pitch = 0.45, dist = 18;
+                controls = {
+                    target: new THREE.Vector3(0, 2, 0),
+                    update() {
+                        const cx = this.target.x + dist * Math.sin(yaw) * Math.cos(pitch);
+                        const cy = Math.max(1.5, this.target.y + dist * Math.sin(pitch));
+                        const cz = this.target.z + dist * Math.cos(yaw) * Math.cos(pitch);
+                        camera.position.set(cx, cy, cz);
+                        camera.lookAt(this.target);
+                    }
+                };
+                renderer.domElement.addEventListener('pointerdown', e => { draggingCam = true; prevX = e.clientX; prevY = e.clientY; });
+                window.addEventListener('pointerup', () => { draggingCam = false; });
+                window.addEventListener('pointermove', e => {
+                    if (!draggingCam) return;
+                    yaw -= (e.clientX - prevX) * 0.008;
+                    pitch = Math.max(0.08, Math.min(1.2, pitch + (e.clientY - prevY) * 0.008));
+                    prevX = e.clientX; prevY = e.clientY;
+                });
+            }
+
+            const hemiLight = new THREE.HemisphereLight(0xdbefff, 0x3b7a3e, 0.95);
+            scene.add(hemiLight);
+
+            const sunLight = new THREE.DirectionalLight(0xfffbeb, 1.05);
+            sunLight.position.set(24, 38, 20);
+            sunLight.castShadow = true;
+            scene.add(sunLight);
+
+            const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 });
+            for (let i = 0; i < 12; i++) {
+                const cGroup = new THREE.Group();
+                const p1 = new THREE.Mesh(new THREE.BoxGeometry(5, 2, 3), cloudMat);
+                const p2 = new THREE.Mesh(new THREE.BoxGeometry(3, 2.5, 2.5), cloudMat);
+                p2.position.set(1.2, 0.8, 0);
+                cGroup.add(p1, p2);
+                cGroup.position.set((Math.random() - 0.5) * 90, 18 + Math.random() * 8, (Math.random() - 0.5) * 90);
+                scene.add(cGroup);
+                clouds.push(cGroup);
+            }
+
+            selectionBox = new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1)), 0x1e293b);
+            selectionBox.visible = false;
+            scene.add(selectionBox);
+        }
+
+        function createBillboardUI(text, worldObj, offsetY = 2.6, extraClass = '') {
+            const el = document.createElement('div');
+            el.className = `billboard-ui ${extraClass}`;
+            el.textContent = text;
+            billboardLayer.appendChild(el);
+            const item = { element: el, worldObj, offsetY };
+            WorkspaceData.billboards.push(item);
+            return item;
+        }
+
+        function clearWorldObjects() {
+            if (!hasThree) return;
+            WorkspaceData.parts.forEach(p => scene.remove(p.mesh));
+            WorkspaceData.parts = [];
+            WorkspaceData.characters.forEach(c => scene.remove(c.group));
+            WorkspaceData.characters = [];
+            WorkspaceData.billboards.forEach(b => b.element.remove());
+            WorkspaceData.billboards = [];
+        }
+
+        function addWorkspacePart(name, size, pos, color, anchored = true, opts = {}) {
+            if (!hasThree) return null;
+            const mesh = new THREE.Mesh(
+                new THREE.BoxGeometry(size[0], size[1], size[2]),
+                new THREE.MeshStandardMaterial({ color, roughness: 0.45 })
+            );
+            mesh.position.set(pos[0], pos[1], pos[2]);
+            if (opts.rotX) mesh.rotation.x = opts.rotX;
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+
+            const part = {
+                name,
+                className: 'Part',
+                mesh,
+                anchored,
+                canCollide: true,
+                bounce: opts.bounce || 0,
+                ragdollTrigger: Boolean(opts.ragdollTrigger)
+            };
+            WorkspaceData.parts.push(part);
+            if (opts.billboardLabel) {
+                createBillboardUI(opts.billboardLabel, mesh, size[1] * 0.5 + 0.8, 'pad-tag');
+            }
+            return part;
+        }
+
+        class RobloxRig {
+            constructor(name, spawnPos, isPlayer, colors) {
+                this.name = name;
+                this.isPlayer = isPlayer;
+                this.group = new THREE.Group();
+                this.Humanoid = { WalkSpeed: 12, JumpPower: 14.5, State: 'Running', Ragdoll: false };
+
+                this.HumanoidRootPart = new THREE.Mesh(
+                    new THREE.BoxGeometry(2, 2, 1),
+                    new THREE.MeshBasicMaterial({ color: 0x0ea5e9, wireframe: true })
+                );
+                this.HumanoidRootPart.visible = false;
+                this.group.add(this.HumanoidRootPart);
+
+                this.limbs = {
+                    Head: this._makeLimb('Head', [1.2, 1.2, 1.2], colors.head),
+                    Torso: this._makeLimb('Torso', [2, 2, 1], colors.shirt),
+                    LeftArm: this._makeLimb('LeftArm', [1, 2, 1], colors.head),
+                    RightArm: this._makeLimb('RightArm', [1, 2, 1], colors.head),
+                    LeftLeg: this._makeLimb('LeftLeg', [1, 2, 1], colors.pants),
+                    RightLeg: this._makeLimb('RightLeg', [1, 2, 1], colors.pants)
+                };
+                Object.values(this.limbs).forEach(l => this.group.add(l));
+
+                this.ragdollState = {};
+                Object.keys(this.limbs).forEach(k => {
+                    this.ragdollState[k] = { vel: new THREE.Vector3(), rotVel: new THREE.Vector3() };
+                });
+
+                this.velocity = new THREE.Vector3();
+                this.onGround = false;
+                this.walkCycle = 0;
+
+                scene.add(this.group);
+                WorkspaceData.characters.push(this);
+                this.billboard = createBillboardUI(`${this.name} • Running`, this.limbs.Head, 1.25);
+                this.respawn(spawnPos);
+            }
+
+            _makeLimb(limbName, size, color) {
+                const mesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(size[0], size[1], size[2]),
+                    new THREE.MeshStandardMaterial({ color, roughness: 0.4 })
+                );
+                mesh.name = limbName;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.userData.rig = this;
+                return mesh;
+            }
+
+            applyAppearance(colors) {
+                this.limbs.Head.material.color.set(colors.head);
+                this.limbs.LeftArm.material.color.set(colors.head);
+                this.limbs.RightArm.material.color.set(colors.head);
+                this.limbs.Torso.material.color.set(colors.shirt);
+                this.limbs.LeftLeg.material.color.set(colors.pants);
+                this.limbs.RightLeg.material.color.set(colors.pants);
+            }
+
+            respawn(pos = new THREE.Vector3(0, 5, 4)) {
+                this.Humanoid.Ragdoll = false;
+                this.velocity.set(0, 0, 0);
+                this.HumanoidRootPart.position.copy(pos);
+                this.HumanoidRootPart.rotation.set(0, 0, 0);
+                this._alignLimbs(0);
+            }
+
+            setRagdoll(enable) {
+                if (this.Humanoid.Ragdoll === enable) return;
+                this.Humanoid.Ragdoll = enable;
+                if (enable) {
+                    this.Humanoid.State = 'Ragdoll';
+                    Object.entries(this.limbs).forEach(([k], i) => {
+                        this.ragdollState[k].vel.copy(this.velocity).add(new THREE.Vector3(
+                            (Math.random() - 0.5) * 6,
+                            2.5 + (i % 3) * 1.4,
+                            (Math.random() - 0.5) * 6
+                        ));
+                        this.ragdollState[k].rotVel.set(
+                            (Math.random() - 0.5) * 7,
+                            (Math.random() - 0.5) * 7,
+                            (Math.random() - 0.5) * 7
+                        );
+                    });
+                } else {
+                    const p = this.limbs.Torso.position;
+                    this.HumanoidRootPart.position.set(p.x, Math.max(3.2, p.y + 1.5), p.z);
+                    this.velocity.set(0, 0, 0);
+                    this._alignLimbs(0);
+                }
+                syncRagdollButton();
+            }
+
+            applyImpulse(vec) {
+                const mult = State.ownedPasses.includes('mega-impulse') ? 1.85 : 1.0;
+                const scaled = vec.clone().multiplyScalar(mult);
+                if (this.Humanoid.Ragdoll) {
+                    Object.values(this.ragdollState).forEach(st => {
+                        st.vel.addScaledVector(scaled, 0.8);
+                        st.rotVel.x += (Math.random() - 0.5) * 10;
+                        st.rotVel.z += (Math.random() - 0.5) * 10;
+                    });
+                } else {
+                    this.velocity.add(scaled);
+                    if (scaled.y > 4) this.onGround = false;
+                }
+            }
+
+            _floorYAt(x, z, curY) {
+                let topY = 0;
+                for (const p of WorkspaceData.parts) {
+                    if (!p.canCollide) continue;
+                    const box = new THREE.Box3().setFromObject(p.mesh);
+                    if (x >= box.min.x - 0.45 && x <= box.max.x + 0.45 &&
+                        z >= box.min.z - 0.45 && z <= box.max.z + 0.45) {
+                        if (box.max.y <= curY + 1.2 && box.max.y > topY) topY = box.max.y;
+                    }
+                }
+                return topY;
+            }
+
+            _alignLimbs(swing) {
+                const rp = this.HumanoidRootPart.position;
+                const yaw = this.HumanoidRootPart.rotation.y;
+                const offset = (lx, ly, lz) => new THREE.Vector3(lx, ly, lz)
+                    .applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw)
+                    .add(rp);
+
+                this.limbs.Torso.position.copy(offset(0, 0, 0));
+                this.limbs.Torso.rotation.set(0, yaw, 0);
+                this.limbs.Head.position.copy(offset(0, 1.65, 0));
+                this.limbs.Head.rotation.set(0, yaw, 0);
+                this.limbs.LeftArm.position.copy(offset(-1.55, 0.05, 0));
+                this.limbs.LeftArm.rotation.set(swing, yaw, 0.08);
+                this.limbs.RightArm.position.copy(offset(1.55, 0.05, 0));
+                this.limbs.RightArm.rotation.set(-swing, yaw, -0.08);
+                this.limbs.LeftLeg.position.copy(offset(-0.52, -2.0, 0));
+                this.limbs.LeftLeg.rotation.set(-swing, yaw, 0);
+                this.limbs.RightLeg.position.copy(offset(0.52, -2.0, 0));
+                this.limbs.RightLeg.rotation.set(swing, yaw, 0);
+            }
+
+            update(dt, moveVec, jump) {
+                const grav = WorkspaceData.gravity;
+                if (!this.Humanoid.Ragdoll) {
+                    const fwd = new THREE.Vector3();
+                    camera.getWorldDirection(fwd);
+                    fwd.y = 0;
+                    if (fwd.lengthSq() > 0.0001) fwd.normalize();
+                    const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+
+                    const wish = new THREE.Vector3()
+                        .addScaledVector(fwd, moveVec.z)
+                        .addScaledVector(right, moveVec.x);
+
+                    const spd = this.Humanoid.WalkSpeed;
+                    if (wish.lengthSq() > 0.001) {
+                        wish.normalize();
+                        this.velocity.x = wish.x * spd;
+                        this.velocity.z = wish.z * spd;
+                        const targetYaw = Math.atan2(wish.x, wish.z);
+                        let diff = targetYaw - this.HumanoidRootPart.rotation.y;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        this.HumanoidRootPart.rotation.y += diff * Math.min(1, dt * 14);
+                    } else {
+                        this.velocity.x *= Math.pow(0.001, dt);
+                        this.velocity.z *= Math.pow(0.001, dt);
+                    }
+
+                    if (jump && this.onGround) {
+                        this.velocity.y = this.Humanoid.JumpPower;
+                        this.onGround = false;
+                    }
+
+                    this.velocity.y += grav * dt;
+                    const prevY = this.HumanoidRootPart.position.y;
+                    this.HumanoidRootPart.position.addScaledVector(this.velocity, dt);
+
+                    const footOffset = 3.0;
+                    const floorY = this._floorYAt(
+                        this.HumanoidRootPart.position.x,
+                        this.HumanoidRootPart.position.z,
+                        prevY - footOffset + 0.5
+                    );
+
+                    if (this.HumanoidRootPart.position.y - footOffset <= floorY && this.velocity.y <= 0) {
+                        this.HumanoidRootPart.position.y = floorY + footOffset;
+                        this.velocity.y = 0;
+                        this.onGround = true;
+                    } else {
+                        this.onGround = false;
+                    }
+
+                    for (const p of WorkspaceData.parts) {
+                        const box = new THREE.Box3().setFromObject(p.mesh);
+                        const rp = this.HumanoidRootPart.position;
+                        if (rp.x >= box.min.x && rp.x <= box.max.x &&
+                            rp.z >= box.min.z && rp.z <= box.max.z &&
+                            Math.abs((rp.y - footOffset) - box.max.y) < 0.8) {
+                            if (p.bounce > 0) {
+                                this.velocity.y = p.bounce;
+                                this.onGround = false;
+                            }
+                            if (p.ragdollTrigger) {
+                                this.setRagdoll(true);
+                                this.applyImpulse(new THREE.Vector3(0, 6, -10));
+                            }
+                        }
+                    }
+
+                    if (this.HumanoidRootPart.position.y < -25) {
+                        this.respawn(new THREE.Vector3(0, 6, 4));
+                        return;
+                    }
+
+                    const hSpeed = Math.hypot(this.velocity.x, this.velocity.z);
+                    if (hSpeed > 0.6 && this.onGround) {
+                        this.Humanoid.State = 'Running';
+                        this.walkCycle += dt * hSpeed * 1.1;
+                    } else if (!this.onGround) {
+                        this.Humanoid.State = this.velocity.y > 0 ? 'Jumping' : 'Freefall';
+                    } else {
+                        this.Humanoid.State = 'Idle';
+                        this.walkCycle = 0;
+                    }
+
+                    this._alignLimbs(Math.sin(this.walkCycle) * (hSpeed > 0.6 ? 0.75 : 0));
+                } else {
+                    this.Humanoid.State = 'Ragdoll';
+                    Object.entries(this.limbs).forEach(([k, mesh]) => {
+                        const st = this.ragdollState[k];
+                        st.vel.y += grav * dt;
+                        st.vel.multiplyScalar(Math.pow(0.35, dt));
+                        st.rotVel.multiplyScalar(Math.pow(0.25, dt));
+                        mesh.position.addScaledVector(st.vel, dt);
+                        mesh.rotation.x += st.rotVel.x * dt;
+                        mesh.rotation.y += st.rotVel.y * dt;
+                        mesh.rotation.z += st.rotVel.z * dt;
+
+                        const fy = this._floorYAt(mesh.position.x, mesh.position.z, mesh.position.y);
+                        if (mesh.position.y - 0.6 < fy) {
+                            mesh.position.y = fy + 0.6;
+                            if (st.vel.y < 0) st.vel.y *= -0.35;
+                            st.vel.x *= 0.82;
+                            st.vel.z *= 0.82;
+                        }
+                    });
+
+                    const link = (aKey, bKey, dist, stiff = 0.68) => {
+                        const a = this.limbs[aKey].position;
+                        const b = this.limbs[bKey].position;
+                        const delta = new THREE.Vector3().subVectors(b, a);
+                        const len = delta.length();
+                        if (len > 0.0001) {
+                            const corr = delta.multiplyScalar(((len - dist) / len) * stiff);
+                            a.addScaledVector(corr, 0.5);
+                            b.addScaledVector(corr, -0.5);
+                        }
+                    };
+
+                    link('Torso', 'Head', 1.65, 0.8);
+                    link('Torso', 'LeftArm', 1.65, 0.65);
+                    link('Torso', 'RightArm', 1.65, 0.65);
+                    link('Torso', 'LeftLeg', 2.05, 0.7);
+                    link('Torso', 'RightLeg', 2.05, 0.7);
+
+                    this.HumanoidRootPart.position.copy(this.limbs.Torso.position);
+                    if (this.limbs.Torso.position.y < -25) {
+                        this.respawn(new THREE.Vector3(0, 6, 4));
+                    }
+                }
+
+                this.billboard.element.textContent = `${this.name} • ${this.Humanoid.State}`;
+            }
+        }
+
+        function buildMapPreset(preset) {
+            if (!hasThree) return;
+            clearWorldObjects();
+            addWorkspacePart('Baseplate', [80, 2, 80], [0, -1, 0], 0x3b873e, true);
+            const grid = new THREE.GridHelper(80, 40, 0x2f6d32, 0x4ca350);
+            grid.position.y = 0.01;
+            scene.add(grid);
+
+            if (preset === 'ragdoll_map') {
+                addWorkspacePart('SpawnLocation', [8, 0.6, 8], [0, 0.3, 4], 0x475569, true, { billboardLabel: 'SPAWN' });
+                addWorkspacePart('RagdollSlideRamp', [7, 0.8, 15], [0, 4.2, -9], 0xf59e0b, true, {
+                    rotX: 0.36, ragdollTrigger: true, billboardLabel: 'RAGDOLL SLIDE'
+                });
+                addWorkspacePart('SuperBumper', [5, 0.8, 5], [9, 0.4, -3], 0xef4444, true, {
+                    bounce: 26, billboardLabel: 'BUMPER BOUNCE'
+                });
+                addWorkspacePart('SkyTowerDeck', [9, 1.2, 9], [14, 7.5, -13], 0x0284c7, true, {
+                    billboardLabel: 'HIGH DROP DECK'
+                });
+            } else {
+                addWorkspacePart('StartPad', [8, 0.6, 8], [0, 0.3, 0], 0x0ea5e9, true, { billboardLabel: 'START' });
+                addWorkspacePart('Step_1', [5, 0.8, 5], [0, 1.8, -8], 0x38bdf8, true);
+                addWorkspacePart('Step_2', [5, 0.8, 5], [6, 3.4, -14], 0x818cf8, true);
+                addWorkspacePart('LaunchPad', [5, 0.8, 5], [12, 4.5, -20], 0xef4444, true, { bounce: 25, billboardLabel: 'BOOST' });
+            }
+
+            playerRig = new RobloxRig(State.user.username, new THREE.Vector3(0, 5, 4), true, State.user);
+            dummyRig = new RobloxRig('Dummy_Ragdoll', new THREE.Vector3(-6, 5, -2), false, {
+                head: '#fde68a', shirt: '#e11d48', pants: '#334155'
+            });
+            applyGamepassEffects();
+            selectedObj = playerRig;
+            refreshStudioPanels();
+        }
+
+        function launchWorld(gameId, openStudio) {
+            const game = State.games.find(g => g.id === gameId) || State.games[0];
+            State.activeGame = game;
+            openPage('game');
+            if (!hasThree) {
+                showToast('Three.js CDN belum termuat, periksa koneksi internet.');
+                return;
+            }
+            buildMapPreset(game.preset);
+            setStudioMode(openStudio);
+        }
+
+        function setStudioMode(enabled) {
+            State.studioMode = enabled;
+            document.getElementById('btnPlayMode').classList.toggle('active', !enabled);
+            document.getElementById('btnStudioMode').classList.toggle('active', enabled);
+            document.getElementById('studioToolsBar').style.display = enabled ? 'flex' : 'none';
+            document.getElementById('studioExplorer').classList.toggle('open', enabled);
+            document.getElementById('studioProps').classList.toggle('open', enabled);
+            if (selectionBox) selectionBox.visible = enabled && Boolean(selectedObj);
+            refreshStudioPanels();
+        }
+
+        function setGizmo(mode) {
+            gizmoMode = mode;
+            document.getElementById('gizmoMove').classList.toggle('active', mode === 'move');
+            document.getElementById('gizmoRot').classList.toggle('active', mode === 'rotate');
+        }
+
+        function refreshStudioPanels() {
+            if (!State.studioMode || !hasThree) return;
+            const expEl = document.getElementById('explorerContent');
+            expEl.innerHTML = `<div class="exp-item">🌍 Workspace</div>`;
+
+            WorkspaceData.parts.forEach(p => {
+                const div = document.createElement('div');
+                div.className = `exp-item exp-sub ${selectedObj === p ? 'selected' : ''}`;
+                div.textContent = `🧱 ${p.name}`;
+                div.addEventListener('click', () => { selectedObj = p; refreshStudioPanels(); });
+                expEl.appendChild(div);
+            });
+
+            WorkspaceData.characters.forEach(c => {
+                const div = document.createElement('div');
+                div.className = `exp-item exp-sub ${selectedObj === c ? 'selected' : ''}`;
+                div.textContent = `🧍 ${c.name} (Humanoid)`;
+                div.addEventListener('click', () => { selectedObj = c; refreshStudioPanels(); });
+                expEl.appendChild(div);
+            });
+
+            const propsEl = document.getElementById('propsContent');
+            propsEl.innerHTML = '';
+            if (selectedObj instanceof RobloxRig) {
+                propsEl.innerHTML = `
+                    <div class="studio-prop"><span>Model</span><strong>${selectedObj.name}</strong></div>
+                    <div class="studio-prop">
+                        <span>WalkSpeed</span>
+                        <input type="range" min="4" max="32" value="${selectedObj.Humanoid.WalkSpeed}" id="stWalk">
+                    </div>
+                    <div class="studio-prop">
+                        <span>JumpPower</span>
+                        <input type="range" min="6" max="30" value="${selectedObj.Humanoid.JumpPower}" id="stJump">
+                    </div>
+                `;
+                document.getElementById('stWalk').addEventListener('input', e => { selectedObj.Humanoid.WalkSpeed = Number(e.target.value); });
+                document.getElementById('stJump').addEventListener('input', e => { selectedObj.Humanoid.JumpPower = Number(e.target.value); });
+            } else if (selectedObj && selectedObj.mesh) {
+                const hex = '#' + selectedObj.mesh.material.color.getHexString();
+                propsEl.innerHTML = `
+                    <div class="studio-prop"><span>Part</span><strong>${selectedObj.name}</strong></div>
+                    <div class="studio-prop"><span>Color</span><input type="color" value="${hex}" id="stColor"></div>
+                `;
+                document.getElementById('stColor').addEventListener('input', e => { selectedObj.mesh.material.color.set(e.target.value); });
+            }
+        }
+
+        function syncRagdollButton() {
+            const btn = document.getElementById('btnRagdollToggle');
+            const isRag = Boolean(playerRig && playerRig.Humanoid.Ragdoll);
+            btn.textContent = `🦴 Ragdoll: ${isRag ? 'ON' : 'OFF'}`;
+            btn.classList.toggle('active', isRag);
+        }
+
+        function toggleRagdoll() {
+            if (playerRig) playerRig.setRagdoll(!playerRig.Humanoid.Ragdoll);
+        }
+
+        function flingCharacter() {
+            if (!playerRig) return;
+            playerRig.setRagdoll(true);
+            playerRig.applyImpulse(new THREE.Vector3((Math.random() - 0.5) * 26, 16, -14));
+        }
+
+        function respawnCharacter() {
+            if (!playerRig) return;
+            playerRig.respawn(new THREE.Vector3(0, 5, 4));
+            syncRagdollButton();
+        }
+
+        document.getElementById('backToHomeBtn').addEventListener('click', () => openPage('home'));
+        document.getElementById('btnPlayMode').addEventListener('click', () => setStudioMode(false));
+        document.getElementById('btnStudioMode').addEventListener('click', () => setStudioMode(true));
+        document.getElementById('btnRagdollToggle').addEventListener('click', toggleRagdoll);
+        document.getElementById('btnFling').addEventListener('click', flingCharacter);
+        document.getElementById('btnRespawn').addEventListener('click', respawnCharacter);
+        document.getElementById('gizmoMove').addEventListener('click', () => setGizmo('move'));
+        document.getElementById('gizmoRot').addEventListener('click', () => setGizmo('rotate'));
+        document.getElementById('btnAddPart').addEventListener('click', () => {
+            const p = addWorkspacePart(`Part_${WorkspaceData.parts.length}`, [3, 1.5, 3], [(Math.random() - 0.5) * 10, 2.5, 0], Math.floor(Math.random() * 0xffffff));
+            selectedObj = p;
+            refreshStudioPanels();
+        });
+        document.getElementById('btnAddDummy').addEventListener('click', () => {
+            if (!hasThree) return;
+            const d = new RobloxRig(`Dummy_${WorkspaceData.characters.length}`, new THREE.Vector3((Math.random() - 0.5) * 10, 6, 0), false, {
+                head: '#fde68a', shirt: '#f97316', pants: '#1e293b'
+            });
+            selectedObj = d;
+            refreshStudioPanels();
+        });
+
+        // Keyboard & Mobile Joystick
+        const keys = {};
+        window.addEventListener('keydown', e => {
+            keys[e.code] = true;
+            if (e.code === 'KeyR' && !e.repeat) toggleRagdoll();
+        });
+        window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+        const joystickZone = document.getElementById('joystickZone');
+        const joystickKnob = document.getElementById('joystickKnob');
+        let joyActiveId = null;
+        let joyVec = { x: 0, z: 0 };
+        let mobileJumpHeld = false;
+
+        function updateJoystick(clientX, clientY) {
+            const rect = joystickZone.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const maxR = 36;
+            let dx = clientX - cx;
+            let dy = clientY - cy;
+            const dist = Math.hypot(dx, dy);
+            if (dist > maxR) {
+                dx = (dx / dist) * maxR;
+                dy = (dy / dist) * maxR;
+            }
+            joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+            joyVec.x = dx / maxR;
+            joyVec.z = -(dy / maxR);
+        }
+
+        function resetJoystick() {
+            joyActiveId = null;
+            joyVec.x = 0;
+            joyVec.z = 0;
+            joystickKnob.style.transform = 'translate(0px, 0px)';
+        }
+
+        joystickZone.addEventListener('pointerdown', e => {
+            e.stopPropagation();
+            joyActiveId = e.pointerId;
+            joystickZone.setPointerCapture(e.pointerId);
+            updateJoystick(e.clientX, e.clientY);
+        });
+        joystickZone.addEventListener('pointermove', e => {
+            if (e.pointerId === joyActiveId) updateJoystick(e.clientX, e.clientY);
+        });
+        joystickZone.addEventListener('pointerup', e => {
+            if (e.pointerId === joyActiveId) resetJoystick();
+        });
+        joystickZone.addEventListener('pointercancel', resetJoystick);
+
+        document.getElementById('mobileJumpBtn').addEventListener('pointerdown', e => {
+            e.stopPropagation();
+            mobileJumpHeld = true;
+        });
+        window.addEventListener('pointerup', () => { mobileJumpHeld = false; });
+        document.getElementById('mobileRagdollBtn').addEventListener('click', e => {
+            e.stopPropagation();
+            toggleRagdoll();
+        });
+
+        function updateBillboards() {
+            if (!hasThree || !camera) return;
+            const page = document.getElementById('game-page');
+            const w = page.clientWidth || window.innerWidth;
+            const h = page.clientHeight || (window.innerHeight - 44);
+            for (const b of WorkspaceData.billboards) {
+                const pos = new THREE.Vector3();
+                b.worldObj.getWorldPosition(pos);
+                pos.y += b.offsetY;
+                pos.project(camera);
+                if (pos.z > 1) {
+                    b.element.style.display = 'none';
+                } else {
+                    b.element.style.display = 'block';
+                    b.element.style.left = `${(pos.x * 0.5 + 0.5) * w}px`;
+                    b.element.style.top = `${(-pos.y * 0.5 + 0.5) * h}px`;
+                }
+            }
+        }
+
+        window.addEventListener('resize', handleResize3D);
+
+        if (hasThree) {
+            const clock = new THREE.Clock();
+            (function loop() {
+                requestAnimationFrame(loop);
+                const dt = Math.min(clock.getDelta(), 0.05);
+                clouds.forEach((c, idx) => {
+                    c.position.x += dt * (0.6 + (idx % 3) * 0.25);
+                    if (c.position.x > 55) c.position.x = -55;
+                });
+
+                if (document.getElementById('game-page').classList.contains('active') && playerRig) {
+                    const moveX = (keys['KeyD'] || keys['ArrowRight'] ? 1 : 0) - (keys['KeyA'] || keys['ArrowLeft'] ? 1 : 0) + joyVec.x;
+                    const moveZ = (keys['KeyW'] || keys['ArrowUp'] ? 1 : 0) - (keys['KeyS'] || keys['ArrowDown'] ? 1 : 0) + joyVec.z;
+                    const jump = Boolean(keys['Space']) || mobileJumpHeld;
+
+                    playerRig.update(dt, { x: moveX, z: moveZ }, jump);
+                    if (dummyRig) dummyRig.update(dt, { x: 0, z: 0 }, false);
+
+                    const focusPos = playerRig.Humanoid.Ragdoll ? playerRig.limbs.Torso.position : playerRig.HumanoidRootPart.position;
+                    const prevTarget = controls.target.clone();
+                    controls.target.lerp(focusPos, Math.min
